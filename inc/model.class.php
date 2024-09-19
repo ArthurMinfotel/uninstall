@@ -49,7 +49,8 @@ class PluginUninstallModel extends CommonDBTM
     const PLUGIN_FIELDS_ACTION_ADVANCED = 3;
 
     const REPLACE_STATE_KEEP = 0;
-    const REPLACE_STATE_DEFINE = 1;
+    const REPLACE_STATE_COPY = 1;
+    const REPLACE_STATE_DEFINE = 2;
 
 
     public static function getTypeName($nb = 0)
@@ -564,6 +565,7 @@ class PluginUninstallModel extends CommonDBTM
             'replace_states_action',
             [
                 self::REPLACE_STATE_KEEP => __('Keep current state', 'uninstall'),
+                self::REPLACE_STATE_COPY => __('Copy', 'uninstall'),
                 self::REPLACE_STATE_DEFINE => __('Set value', 'uninstall')
             ],
             ['value' => $value]
@@ -572,7 +574,7 @@ class PluginUninstallModel extends CommonDBTM
                 const selectStateAction = $(\"select[name='replace_states_action']\");
                 selectStateAction.change(e => {
                     const value = e.target.options[e.target.selectedIndex].value;
-                    if (value == " . self::REPLACE_STATE_KEEP . ") {
+                    if (value != " . self::REPLACE_STATE_DEFINE . ") {
                         document.getElementById('label_new_state').classList.add('d-none');
                         document.getElementById('value_new_state').classList.add('d-none');
                     } else {
@@ -590,7 +592,7 @@ class PluginUninstallModel extends CommonDBTM
         State::dropdown([
             'name'        => 'replace_states_id',
             'value'       => $this->fields['replace_states_id'],
-            'emptylabel'  => __('None')
+            'emptylabel'  => __('Keep current')
         ]);
         echo "</span></td>";
         echo "</tr>";
@@ -1548,7 +1550,7 @@ class PluginUninstallModel extends CommonDBTM
             }
 
             if (!$DB->fieldExists($table, 'replace_states_action')) {
-                $migration->addField($table, 'replace_states_action', "tinyint NOT NULL DEFAULT '" . self::REPLACE_STATE_KEEP . "'");
+                $migration->addField($table, 'replace_states_action', "int NOT NULL DEFAULT '" . self::REPLACE_STATE_KEEP . "'");
                 $migration->addField($table, 'replace_states_id', "int unsigned NOT NULL DEFAULT '0'");
             }
 
@@ -1606,7 +1608,7 @@ class PluginUninstallModel extends CommonDBTM
                     `action_plugin_fields_replace` int NOT NULL DEFAULT '0',
                     `replace_contact` tinyint NOT NULL DEFAULT '0',
                     `replace_contact_num` tinyint NOT NULL DEFAULT '0',
-                    `replace_states_action` tinyint NOT NULL DEFAULT '0',
+                    `replace_states_action` int NOT NULL DEFAULT '0',
                     `replace_states_id` int {$default_key_sign} NOT NULL DEFAULT '0',
                     PRIMARY KEY (`id`)
                   ) ENGINE=InnoDB DEFAULT CHARSET={$default_charset} COLLATE={$default_collation} ROW_FORMAT=DYNAMIC;";

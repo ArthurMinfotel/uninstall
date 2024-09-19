@@ -87,14 +87,37 @@ class PluginUninstallReplace extends CommonDBTM
            // Retrieve information
 
            //States
-            if ($model->fields['states_id'] != 0) {
-                $olditem->update(
-                    ['id'           => $olditem_id,
-                        'is_dynamic'   => $olditem->fields['is_dynamic'], #to prevent locked field
-                        'states_id'    => $model->fields['states_id']
-                    ],
-                    false
-                );
+            if ($newitem->isField('states_id')) {
+                // New item
+                if ($model->fields["replace_states_action"]) {
+                    switch ($model->fields["replace_states_action"]) {
+                        case $model::REPLACE_STATE_COPY:
+                            $newState = $olditem->getField('states_id');
+                            break;
+                        case $model::REPLACE_STATE_DEFINE:
+                            $newState = $model->fields["replace_states_id"];
+                            break;
+                    }
+                    $newitem->update(
+                        [
+                            'id'        => $newitem_id,
+                            'states_id' => $newState
+                        ],
+                        false
+                    );
+                }
+
+                // Old item
+                if ($model->fields['states_id'] != 0) {
+                    $olditem->update(
+                        [
+                            'id'           => $olditem_id,
+                            'is_dynamic'   => $olditem->fields['is_dynamic'], #to prevent locked field
+                            'states_id'    => $model->fields['states_id']
+                        ],
+                        false
+                    );
+                }
             }
 
            // METHOD REPLACEMENT 1 : Archive
@@ -410,17 +433,6 @@ class PluginUninstallReplace extends CommonDBTM
                         );
                     }
                 }
-            }
-
-            // State
-            if ($model->fields["replace_states_action"]) {
-                $newitem->update(
-                    [
-                        'id'        => $newitem_id,
-                        'states_id' => $model->fields["replace_states_id"]
-                    ],
-                    false
-                );
             }
 
            // Location
