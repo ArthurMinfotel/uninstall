@@ -48,6 +48,9 @@ class PluginUninstallModel extends CommonDBTM
     // choose action for each container individually
     const PLUGIN_FIELDS_ACTION_ADVANCED = 3;
 
+    const REPLACE_STATE_KEEP = 0;
+    const REPLACE_STATE_DEFINE = 1;
+
 
     public static function getTypeName($nb = 0)
     {
@@ -552,6 +555,45 @@ class PluginUninstallModel extends CommonDBTM
             (isset($this->fields["overwrite"]) ? $this->fields["overwrite"] : 1)
         );
         echo "</td></tr>";
+
+        echo "<tr class='tab_bg_1 center'>";
+        echo "<td>" . __('State of the new material', 'uninstall') . "</td>";
+        echo "<td>";
+        $value = (isset($this->fields["replace_states_action"]) ? $this->fields["replace_states_action"] : 0);
+        Dropdown::showFromArray(
+            'replace_states_action',
+            [
+                self::REPLACE_STATE_KEEP => __('Keep current state', 'uninstall'),
+                self::REPLACE_STATE_DEFINE => __('Set value', 'uninstall')
+            ],
+            ['value' => $value]
+        );
+        echo "<script>
+                const selectStateAction = $(\"select[name='replace_states_action']\");
+                selectStateAction.change(e => {
+                    const value = e.target.options[e.target.selectedIndex].value;
+                    if (value == " . self::REPLACE_STATE_KEEP . ") {
+                        document.getElementById('label_new_state').classList.add('d-none');
+                        document.getElementById('value_new_state').classList.add('d-none');
+                    } else {
+                        document.getElementById('label_new_state').classList.remove('d-none');
+                        document.getElementById('value_new_state').classList.remove('d-none');
+                    }
+                })
+                selectStateAction.trigger('change');
+            </script>";
+        echo "</td>";
+        echo "<td><span id='label_new_state'>";
+        echo __('New state', 'uninstall');
+        echo "</span></td>";
+        echo "<td><span id='value_new_state'>";
+        State::dropdown([
+            'name'        => 'replace_states_id',
+            'value'       => $this->fields['replace_states_id'],
+            'emptylabel'  => __('None')
+        ]);
+        echo "</span></td>";
+        echo "</tr>";
 
         echo "<tr class='tab_bg_1 center'>";
         echo "<td>" . __('Archiving method of the old material', 'uninstall') . "</td>";
@@ -1470,7 +1512,6 @@ class PluginUninstallModel extends CommonDBTM
                 $migration->addField($table, 'raz_glpiinventory', "integer");
             }
 
-            // from 2.9.2 to 2.10.0
             if (!$DB->fieldExists($table, 'action_plugin_fields_replace')) {
                 $migration->addField($table, 'action_plugin_fields_replace', "int NOT NULL DEFAULT '" . self::PLUGIN_FIELDS_ACTION_NONE . "'");
                 $migration->addField($table, 'action_plugin_fields_uninstall', "int NOT NULL DEFAULT '" . self::PLUGIN_FIELDS_ACTION_NONE . "'");
@@ -1505,6 +1546,12 @@ class PluginUninstallModel extends CommonDBTM
                     )
                 );
             }
+
+            if (!$DB->fieldExists($table, 'replace_states_action')) {
+                $migration->addField($table, 'replace_states_action', "tinyint NOT NULL DEFAULT '" . self::REPLACE_STATE_KEEP . "'");
+                $migration->addField($table, 'replace_states_id', "int unsigned NOT NULL DEFAULT '0'");
+            }
+
             $migration->migrationOneTable($table);
 
             $self = new self();
@@ -1559,6 +1606,8 @@ class PluginUninstallModel extends CommonDBTM
                     `action_plugin_fields_replace` int NOT NULL DEFAULT '0',
                     `replace_contact` tinyint NOT NULL DEFAULT '0',
                     `replace_contact_num` tinyint NOT NULL DEFAULT '0',
+                    `replace_states_action` tinyint NOT NULL DEFAULT '0',
+                    `replace_states_id` int {$default_key_sign} NOT NULL DEFAULT '0',
                     PRIMARY KEY (`id`)
                   ) ENGINE=InnoDB DEFAULT CHARSET={$default_charset} COLLATE={$default_collation} ROW_FORMAT=DYNAMIC;";
 

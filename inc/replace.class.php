@@ -412,6 +412,17 @@ class PluginUninstallReplace extends CommonDBTM
                 }
             }
 
+            // State
+            if ($model->fields["replace_states_action"]) {
+                $newitem->update(
+                    [
+                        'id'        => $newitem_id,
+                        'states_id' => $model->fields["replace_states_id"]
+                    ],
+                    false
+                );
+            }
+
            // Location
             if ($location != 0 && $olditem->isField('locations_id')) {
                 $olditem->getFromDB($olditem_id);
