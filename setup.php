@@ -30,7 +30,7 @@
 
 use Glpi\Plugin\Hooks;
 
-define('PLUGIN_UNINSTALL_VERSION', '2.9.3');
+define('PLUGIN_UNINSTALL_VERSION', '2.9.3-infotel');
 
 // Minimal GLPI version, inclusive
 define("PLUGIN_UNINSTALL_MIN_GLPI", "10.0.7");
@@ -144,6 +144,7 @@ function plugin_init_uninstall()
             $PLUGIN_HOOKS[Hooks::ITEM_PURGE]['uninstall'] = [
                 PluginFieldsContainer::class => 'plugin_uninstall_hook_purge_container',
                 PluginFieldsField::class => 'plugin_uninstall_hook_purge_field',
+                State::class => 'plugin_uninstall_hook_purge_state',
             ];
         }
     }

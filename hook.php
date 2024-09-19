@@ -206,3 +206,16 @@ function plugin_uninstall_hook_purge_field($item)
         ['plugin_fields_fields_id' => $fieldId]
     );
 }
+
+function plugin_uninstall_hook_purge_state($item)
+{
+    if (!($item instanceof State)) {
+        return;
+    }
+    global $DB;
+    $DB->update(
+        PluginUninstallModel::getTable(),
+        ['replace_states_id' => 0],
+        ['replace_states_id' => $item->getID()]
+    );
+}
